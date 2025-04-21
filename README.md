@@ -1,10 +1,33 @@
 # whoAMiP
 This Python script securely retrieves and analyzes network information, including public and private IP addresses, subnet masks, TOR network usage, open ports, and offers an option to save results for export, tailored for Debian distros of Linux with privacy-focused enhancements.
 
+V2 update notes:
+Key Enhancements Added:
+Network Interface Selection: Users can specify the network interface (default: eth0).
+
+Multi-threaded Port Scanning: Improved speed with threading.
+
+Advanced TOR Detection: Checks TOR usage more robustly.
+
+Result Encryption: Encrypts output data using the cryptography library.
+
+Dynamic Export Formats: Supports TXT, CSV, and JSON exports.
+
+Email Notifications: Sends results via email for monitoring purposes.
+
+Network Visualization: Visualizes open ports using matplotlib.
+
+Custom Port Range: Allows flexible port scanning range.
+
+Improved Error Handling: Exception handling for reliable script execution.
+
+Secure Metadata: Limits metadata exposure during API requests.
+
 note:
 This script enhances network security by providing critical insights into a network's status and potential vulnerabilities. By identifying public and private IP addresses, subnet masks, and open ports, you can gain a comprehensive understanding of your network's configuration, which helps detect unauthorized access points or misconfigurations. The TOR usage check ensures you're aware of any potential anonymity network connections that could be exploited for malicious purposes. Additionally, with the privacy-focused enhancements like secure requests, minimal metadata sharing, and optional encrypted exports, the script reduces the risk of data exposure during scanning and data handling processes. Such tools are valuable for proactively assessing and tightening your network's defenses.
 
-# Network Information & Security Assessment Script
+# whoAMiP
+(Network Information & Security Assessment) Script
 
 ## Overview
 This Python script is designed to gather essential network information, assess security vulnerabilities, and perform network diagnostics on Parrot OS (Debian-based Linux). The script retrieves public and private IP addresses, subnet masks, open ports, and checks for TOR network usage. It includes security enhancements to ensure scanning privacy and allows users to export results in CSV or TXT format for analysis and documentation.
