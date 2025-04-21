@@ -30,7 +30,7 @@ This script enhances network security by providing critical insights into a netw
 (Network Information & Security Assessment) Script
 
 ## Overview
-This Python script is designed to gather essential network information, assess security vulnerabilities, and perform network diagnostics on Parrot OS (Debian-based Linux). The script retrieves public and private IP addresses, subnet masks, open ports, and checks for TOR network usage. It includes security enhancements to ensure scanning privacy and allows users to export results in CSV or TXT format for analysis and documentation.
+This Python script is designed to gather essential network information, assess security vulnerabilities, and perform network diagnostics on Debian-based Linux distros. The script retrieves public and private IP addresses, subnet masks, open ports, and checks for TOR network usage. It includes security enhancements to ensure scanning privacy and allows users to export results in CSV or TXT format for analysis and documentation.
 
 ## Features
 1. **Retrieve Public IP Addresses (IPv4 & IPv6)**: Uses secure APIs to fetch public-facing IP addresses.
@@ -123,18 +123,20 @@ Open Ports: 22, 80, 443
 7. **Dynamic IP Masking**: Masks private IP in console outputs unless explicitly requested.
 8. **Local-only Scanning**: Scans restricted to the local network to prevent external exposure.
 
-## Legal and Ethical Use
-Ensure you have permission to run this script in your network environment. Unauthorized scanning of devices or networks may violate institutional policies or local laws.
-
 ## Author
-R.B.H. / GitHub Profile (@wifiknight45)
+GitHub Profile (@wifiknight45) -----> https://github.com/wifiknight45/
 
 Acknowledgements:
 Dieu ~ Microsoft Copilot ~ Google Colab ~ Visual Studio Code 
+
+Disclaimer
+This tool is provided for educational and research purposes only. The author assumes no responsibility or liability for any misuse, unintended consequences, or damages resulting from the use of this script. Users are solely responsible for ensuring that the script is utilized in compliance with all applicable laws, regulations, and organizational policies.
+
+This script is intended to be used in controlled environments such as test networks, virtual machines, or isolated systems. It is strongly recommended to validate its functionality in a sandboxed or non-production environment before deploying it in enterprise or private applications. Unauthorized scanning, probing, or analysis of networks or systems without proper consent is strictly prohibited and may violate legal or ethical standards.
+
+By viewing the readme, using this tool, or modifying the source code, you are acknowledging that you a) understand and agree to these terms and that b) The author provides no warranties or guarantees regarding the performance, accuracy, or reliability of the tool/source code/script. 
 
 ## License
 This script is licensed under MIT License. You can freely modify and distribute it, provided proper attribution is maintained.
 
 ---
-
-Let me know if you need additional tweaks, features, or enhancements! 😊
