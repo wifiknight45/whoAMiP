@@ -1,0 +1,172 @@
+import requests
+import socket
+import ipaddress
+import subprocess
+import csv
+import os
+import json
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from scapy.all import sr1, IP, TCP
+from cryptography.fernet import Fernet
+import threading
+import matplotlib.pyplot as plt
+
+# Function to generate encryption key
+def generate_encryption_key():
+    key = Fernet.generate_key()
+    with open("key.key", "wb") as key_file:
+        key_file.write(key)
+
+# Function to load encryption key
+def load_encryption_key():
+    with open("key.key", "rb") as key_file:
+        return key_file.read()
+
+# Function to encrypt data
+def encrypt_data(data):
+    key = load_encryption_key()
+    fernet = Fernet(key)
+    return fernet.encrypt(data.encode())
+
+# Retrieve public IP addresses
+def get_public_ip():
+    try:
+        headers = {'User-Agent': 'CustomAgent/1.0'}
+        ipv4 = requests.get('https://api64.ipify.org?format=text', headers=headers).text
+        ipv6 = requests.get('https://api64.ipify.org?format=text', headers=headers).text
+        return ipv4, ipv6
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching public IPs: {e}")
+        return None, None
+
+# Retrieve private IP address and subnet mask
+def get_private_ip_and_subnet_mask(interface="eth0"):
+    try:
+        private_ip = socket.gethostbyname(socket.gethostname())
+        subnet_mask = subprocess.check_output(
+            ["ifconfig", interface]
+        ).decode("utf-8").split("netmask")[1].split()[0]
+        return private_ip, subnet_mask
+    except Exception as e:
+        print(f"Error fetching private IP or subnet mask: {e}")
+        return None, None
+
+# Check TOR usage
+def check_tor_usage():
+    try:
+        ipv4, _ = get_public_ip()
+        response = requests.get(f"https://check.torproject.org/api/ip/{ipv4}")
+        return response.json().get('IsTor') if response.status_code == 200 else False
+    except Exception as e:
+        print(f"Error checking TOR usage: {e}")
+        return False
+
+# Multi-threaded port scanner
+def scan_open_ports():
+    target_ip = get_private_ip_and_subnet_mask()[0]
+    open_ports = []
+
+    def scan_port(port):
+        packet = IP(dst=target_ip) / TCP(dport=port, flags="S")
+        response = sr1(packet, timeout=1, verbose=0)
+        if response and response.getlayer(TCP).flags == 0x12:  # SYN-ACK
+            open_ports.append(port)
+
+    threads = []
+    for port in range(1, 1025):
+        thread = threading.Thread(target=scan_port, args=(port,))
+        threads.append(thread)
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+
+    return open_ports
+
+# Save results to file (CSV/JSON/TXT)
+def save_to_file(output_data, file_type="txt"):
+    filename = f"scan_results.{file_type}"
+    try:
+        if file_type == "csv":
+            with open(filename, mode="w", newline="") as file:
+                writer = csv.writer(file)
+                writer.writerow(["Field", "Value"])
+                for key, value in output_data.items():
+                    writer.writerow([key, value])
+        elif file_type == "json":
+            with open(filename, mode="w") as file:
+                json.dump(output_data, file, indent=4)
+        else:
+            with open(filename, mode="w") as file:
+                for key, value in output_data.items():
+                    file.write(f"{key}: {value}\n")
+        print(f"Results saved to {filename}")
+    except Exception as e:
+        print(f"Error saving results: {e}")
+
+# Send email notification
+def send_email_notification(output_data, email_address):
+    try:
+        message = MIMEMultipart()
+        message['From'] = 'script@networkscan.com'
+        message['To'] = email_address
+        message['Subject'] = 'Network Scan Results'
+        body = '\n'.join([f"{key}: {value}" for key, value in output_data.items()])
+        message.attach(MIMEText(body, 'plain'))
+
+        # Example: Replace with real SMTP server details
+        with smtplib.SMTP('smtp.example.com', 587) as server:
+            server.starttls()
+            server.login('username', 'password')
+            server.send_message(message)
+
+        print("Email notification sent.")
+    except Exception as e:
+        print(f"Error sending email notification: {e}")
+
+# Generate network visualization
+def visualize_network(output_data):
+    open_ports = output_data.get("Open Ports", [])
+    plt.bar(range(len(open_ports)), open_ports, color='blue')
+    plt.title('Open Ports Visualization')
+    plt.xlabel('Port Index')
+    plt.ylabel('Port Number')
+    plt.show()
+
+# Main script execution
+if __name__ == '__main__':
+    print("Initializing network scan...")
+    generate_encryption_key()
+    ipv4, ipv6 = get_public_ip()
+    private_ip, subnet_mask = get_private_ip_and_subnet_mask()
+    tor_usage = check_tor_usage()
+    open_ports = scan_open_ports()
+
+    # Compile results
+    results = {
+        "Public IPv4": ipv4,
+        "Public IPv6": ipv6,
+        "Private IP": private_ip,
+        "Subnet Mask": subnet_mask,
+        "Using TOR Network": "Yes" if tor_usage else "No",
+        "Open Ports": open_ports
+    }
+
+    # Encrypt results before saving
+    encrypted_results = encrypt_data(json.dumps(results))
+    save_to_file(results, file_type="csv")
+    save_to_file(results, file_type="txt")
+    save_to_file(results, file_type="json")
+    print(f"Encrypted Results: {encrypted_results}")
+
+    # Visualize network
+    visualize_network(results)
+
+    # Send email (optional)
+    email_address = input("Enter your email to receive results (or press Enter to skip): ")
+    if email_address:
+        send_email_notification(results, email_address)
+
+    print("Network scan complete.")
