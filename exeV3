@@ -1,0 +1,256 @@
+#!/usr/bin/env python3
+import argparse
+import csv
+import json
+import logging
+import os
+import socket
+import subprocess
+import threading
+from pathlib import Path
+
+import requests
+from cryptography.fernet import Fernet
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from scapy.all import IP, TCP, sr1
+import matplotlib.pyplot as plt
+import smtplib
+
+# -----------------------------------------------------------------------------
+# Configuration
+# -----------------------------------------------------------------------------
+KEY_FILE = Path("key.key")
+SMTP_HOST = os.getenv("SMTP_HOST", "smtp.example.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
+SMTP_USER = os.getenv("SMTP_USER", "username")
+SMTP_PASS = os.getenv("SMTP_PASS", "password")
+REQUEST_TIMEOUT = 5  # seconds
+MAX_PORT = 1024
+
+# -----------------------------------------------------------------------------
+# Setup Logging
+# -----------------------------------------------------------------------------
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[logging.StreamHandler()]
+)
+
+
+# -----------------------------------------------------------------------------
+# Encryption Utilities
+# -----------------------------------------------------------------------------
+def generate_key(path: Path = KEY_FILE) -> None:
+    key = Fernet.generate_key()
+    path.write_bytes(key)
+    logging.debug(f"Encryption key generated at {path}")
+
+
+def load_key(path: Path = KEY_FILE) -> bytes:
+    if not path.exists():
+        raise FileNotFoundError(f"Key file not found: {path}")
+    return path.read_bytes()
+
+
+def encrypt(text: str, key: bytes) -> bytes:
+    return Fernet(key).encrypt(text.encode())
+
+
+# -----------------------------------------------------------------------------
+# IP Retrieval
+# -----------------------------------------------------------------------------
+def get_public_ip() -> tuple[str, str]:
+    """Return tuple (ipv4, ipv6)."""
+    url = "https://api64.ipify.org?format=text"
+    try:
+        resp = requests.get(url, timeout=REQUEST_TIMEOUT)
+        resp.raise_for_status()
+        return resp.text.strip(), resp.text.strip()
+    except requests.RequestException as e:
+        logging.error(f"Failed to fetch public IP: {e}")
+        return None, None
+
+
+def get_private_ip_and_mask(interface: str) -> tuple[str, str]:
+    """Return (ip, mask) for given interface."""
+    try:
+        ip = socket.gethostbyname(socket.gethostname())
+        output = subprocess.check_output(
+            ["ifconfig", interface], stderr=subprocess.DEVNULL
+        ).decode()
+        mask = output.split("netmask")[1].split()[0]
+        return ip, mask
+    except subprocess.CalledProcessError:
+        logging.error(f"Interface not found: {interface}")
+    except Exception as e:
+        logging.error(f"Error fetching private IP/mask: {e}")
+    return None, None
+
+
+# -----------------------------------------------------------------------------
+# TOR Check
+# -----------------------------------------------------------------------------
+def is_tor_exit_node(ip: str) -> bool:
+    if not ip:
+        return False
+    url = f"https://check.torproject.org/api/ip/{ip}"
+    try:
+        resp = requests.get(url, timeout=REQUEST_TIMEOUT)
+        resp.raise_for_status()
+        return resp.json().get("IsTor", False)
+    except Exception as e:
+        logging.warning(f"TOR check failed: {e}")
+        return False
+
+
+# -----------------------------------------------------------------------------
+# Port Scanner
+# -----------------------------------------------------------------------------
+def scan_port(target: str, port: int, open_ports: list[int]):
+    try:
+        pkt = IP(dst=target) / TCP(dport=port, flags="S")
+        resp = sr1(pkt, timeout=1, verbose=0)
+        if resp and resp.haslayer(TCP) and resp.getlayer(TCP).flags == 0x12:
+            open_ports.append(port)
+    except Exception as e:
+        logging.debug(f"Error scanning port {port}: {e}")
+
+
+def scan_open_ports(target_ip: str, max_port: int = MAX_PORT) -> list[int]:
+    if not target_ip:
+        return []
+    threads = []
+    open_ports: list[int] = []
+
+    for port in range(1, max_port + 1):
+        t = threading.Thread(target=scan_port, args=(target_ip, port, open_ports))
+        threads.append(t)
+        t.start()
+
+    for t in threads:
+        t.join()
+
+    logging.info(f"Found {len(open_ports)} open ports")
+    return sorted(open_ports)
+
+
+# -----------------------------------------------------------------------------
+# Reporting
+# -----------------------------------------------------------------------------
+def save_results(data: dict, directory: Path, formats: list[str]):
+    directory.mkdir(exist_ok=True)
+    for fmt in formats:
+        path = directory / f"scan_results.{fmt}"
+        try:
+            if fmt == "csv":
+                with path.open("w", newline="") as f:
+                    writer = csv.writer(f)
+                    writer.writerow(data.keys())
+                    writer.writerow(data.values())
+            elif fmt == "json":
+                path.write_text(json.dumps(data, indent=2))
+            else:  # txt
+                path.write_text("\n".join(f"{k}: {v}" for k, v in data.items()))
+            logging.info(f"Results saved to {path}")
+        except Exception as e:
+            logging.error(f"Failed to save {fmt}: {e}")
+
+
+def send_email(data: dict, recipient: str):
+    msg = MIMEMultipart()
+    msg["From"] = SMTP_USER
+    msg["To"] = recipient
+    msg["Subject"] = "Network Scan Results"
+    body = "\n".join(f"{k}: {v}" for k, v in data.items())
+    msg.attach(MIMEText(body, "plain"))
+
+    try:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as server:
+            server.starttls()
+            server.login(SMTP_USER, SMTP_PASS)
+            server.send_message(msg)
+        logging.info("Email sent successfully")
+    except Exception as e:
+        logging.error(f"Email delivery failed: {e}")
+
+
+def plot_open_ports(ports: list[int]):
+    if not ports:
+        logging.info("No ports to visualize")
+        return
+    plt.bar(range(len(ports)), ports, color="blue")
+    plt.title("Open Ports")
+    plt.xlabel("Index")
+    plt.ylabel("Port Number")
+    plt.show()
+
+
+# -----------------------------------------------------------------------------
+# Main
+# -----------------------------------------------------------------------------
+def main():
+    parser = argparse.ArgumentParser(description="Network Scanner")
+    parser.add_argument(
+        "-i", "--interface", default="eth0", help="Network interface for private IP"
+    )
+    parser.add_argument(
+        "-o", "--outdir", type=Path, default=Path("results"), help="Output directory"
+    )
+    parser.add_argument(
+        "-f",
+        "--formats",
+        nargs="+",
+        choices=["txt", "csv", "json"],
+        default=["txt", "csv", "json"],
+        help="Output formats"
+    )
+    parser.add_argument(
+        "--no-visual", action="store_true", help="Skip plotting"
+    )
+    parser.add_argument(
+        "--email", help="Send results to given email address"
+    )
+    args = parser.parse_args()
+
+    logging.info("Starting network scan")
+
+    # Key management
+    if not KEY_FILE.exists():
+        generate_key()
+
+    # Gather data
+    pub4, pub6 = get_public_ip()
+    priv_ip, mask = get_private_ip_and_mask(args.interface)
+    tor_flag = is_tor_exit_node(pub4)
+    ports = scan_open_ports(priv_ip)
+
+    results = {
+        "Public IPv4": pub4,
+        "Public IPv6": pub6,
+        "Private IP": priv_ip,
+        "Subnet Mask": mask,
+        "Using TOR": tor_flag,
+        "Open Ports": ports,
+    }
+
+    # Persist raw & encrypted
+    save_results(results, args.outdir, args.formats)
+    key = load_key()
+    encrypted = encrypt(json.dumps(results), key)
+    (args.outdir / "scan_results.enc").write_bytes(encrypted)
+    logging.info("Encrypted results saved")
+
+    # Visualize
+    if not args.no_visual:
+        plot_open_ports(ports)
+
+    # Optional email
+    if args.email:
+        send_email(results, args.email)
+
+    logging.info("Scan complete")
+
+
+if __name__ == "__main__":
+    main()
