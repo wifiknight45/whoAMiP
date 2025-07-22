@@ -1,4 +1,25 @@
-# whoAMiP
+# whoAMiP is continually being updated as the Developer's time + workload allow. 
+
+Potential Future Enhancements may include all or portions of the following: 
+Remote scanning of multiple targets (pass a list or CSV of IPs).
+
+Asynchronous port scanning using asyncio for faster performance.
+
+IPv6 port scanning support (adjust Scapy packet for IPv6).
+
+Integration with Nmap or masscan for advanced fingerprinting.
+
+HTML or dashboard report generation (e.g., using Plotly Dash).
+
+Secure config file (.ini or .yaml) for SMTP, thresholds, port ranges.
+
+Alerting integration (Slack, PagerDuty, Webhooks).
+
+Containerization (Docker) for reproducible environment.
+
+Scheduling via cron or Windows Task Scheduler with automatic rotating logs.
+
+Script synopsis: 
 This Python script securely retrieves and analyzes network information, including public and private IP addresses, subnet masks, TOR network usage, open ports, and offers an option to save results for export, tailored for Debian distros of Linux with privacy-focused enhancements.
 
 V3 update notes: 
