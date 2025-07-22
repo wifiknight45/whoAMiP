@@ -1,30 +1,42 @@
 # whoAMiP
 This Python script securely retrieves and analyzes network information, including public and private IP addresses, subnet masks, TOR network usage, open ports, and offers an option to save results for export, tailored for Debian distros of Linux with privacy-focused enhancements.
 
+V3 update notes: 
+Improved Error Handling
+a) Specific exception catches (e.g., subprocess.CalledProcessError, requests.RequestException).
+
+b) Centralized logging (levels: DEBUG, INFO, WARNING, ERROR).
+
+c) Timeouts on all network calls to avoid hangs.
+
+d) Validation of key file existence before loading.
+
+e) Command-line validation (via argparse) for required parameters.
+
 V2 update notes:
-Key Enhancements Added:
-Network Interface Selection: Users can specify the network interface (default: eth0).
 
-Multi-threaded Port Scanning: Improved speed with threading.
+a) Network Interface Selection: Users can specify the network interface (default: eth0).
 
-Advanced TOR Detection: Checks TOR usage more robustly.
+b) Multi-threaded Port Scanning: Improved speed with threading.
 
-Result Encryption: Encrypts output data using the cryptography library.
+c) Advanced TOR Detection: Checks TOR usage more robustly.
 
-Dynamic Export Formats: Supports TXT, CSV, and JSON exports.
+d) Result Encryption: Encrypts output data using the cryptography library.
 
-Email Notifications: Sends results via email for monitoring purposes.
+e) Dynamic Export Formats: Supports TXT, CSV, and JSON exports.
 
-Network Visualization: Visualizes open ports using matplotlib.
+f) Email Notifications: Sends results via email for monitoring purposes.
 
-Custom Port Range: Allows flexible port scanning range.
+g) Network Visualization: Visualizes open ports using matplotlib.
 
-Improved Error Handling: Exception handling for reliable script execution.
+h) Custom Port Range: Allows flexible port scanning range.
 
-Secure Metadata: Limits metadata exposure during API requests.
+i) Improved Error Handling: Exception handling for reliable script execution.
+
+j) Secure Metadata: Limits metadata exposure during API requests.
 
 note:
-This script enhances network security by providing critical insights into a network's status and potential vulnerabilities. By identifying public and private IP addresses, subnet masks, and open ports, you can gain a comprehensive understanding of your network's configuration, which helps detect unauthorized access points or misconfigurations. The TOR usage check ensures you're aware of any potential anonymity network connections that could be exploited for malicious purposes. Additionally, with the privacy-focused enhancements like secure requests, minimal metadata sharing, and optional encrypted exports, the script reduces the risk of data exposure during scanning and data handling processes. Such tools are valuable for proactively assessing and tightening your network's defenses.
+This script enhances network security by providing critical insights into a network's status (i.e. its potential entry points that could be exposed and or exploited by vulnerabilities etc). By identifying public and private IP addresses, subnet masks, and open ports, you can gain a comprehensive understanding of your network's configuration, which helps detect unauthorized access points or misconfigurations. The TOR usage check ensures you're aware of any potential anonymity network connections that could be exploited for malicious purposes. Additionally, with the privacy-focused enhancements like secure requests, minimal metadata sharing, and optional encrypted exports, the script reduces the risk of data exposure during scanning and data handling processes. Such tools are valuable for proactively assessing and tightening your network's defenses.
 
 # whoAMiP
 (Network Information & Security Assessment) Script
@@ -57,26 +69,26 @@ sudo pip3 install requests scapy
 ## How to Use
 1. Clone or download the script to your local system:
    ```bash
-   git clone https://github.com/yourusername/network-security-script.git
-   cd network-security-script
+   git clone https://github.com/wifiknight45/whoAMiP.git
+   cd whoAMiP
    ```
 
 2. Run the script with Python:
    ```bash
-   sudo python3 network_scan.py
+   sudo python3 whoAMiP.py
    ```
-   Note: Administrator privileges are required for port scanning.
+   Note: Administrator privileges are required for port scanning (root or sudo). 
 
 3. Follow the on-screen output for gathered network information and security assessment results.
 
 4. Export the results (optional):
    - To save as CSV:
      ```bash
-     python3 network_scan.py --output csv
+     python3 whoAMiP.py --output csv
      ```
    - To save as TXT:
      ```bash
-     python3 network_scan.py --output txt
+     python3 whoAMiP.py --output txt
      ```
 
 ## Example Output
@@ -132,9 +144,9 @@ Dieu ~ Microsoft Copilot ~ Google Colab ~ Visual Studio Code
 Disclaimer
 This tool is provided for educational and research purposes only. The author assumes no responsibility or liability for any misuse, unintended consequences, or damages resulting from the use of this script. Users are solely responsible for ensuring that the script is utilized in compliance with all applicable laws, regulations, and organizational policies.
 
-This script is intended to be used in controlled environments such as test networks, virtual machines, or isolated systems. It is strongly recommended to validate its functionality in a sandboxed or non-production environment before deploying it in enterprise or private applications. Unauthorized scanning, probing, or analysis of networks or systems without proper consent is strictly prohibited and may violate legal or ethical standards.
+This script is intended only to be used in controlled environments such as test networks, virtual machines, or isolated systems. It is strongly recommended to validate its functionality in a sandboxed or non-production environment before deploying it in enterprise or private applications. Unauthorized scanning, probing, or analysis of networks or systems without proper consent is strictly prohibited and may violate legal or ethical standards.
 
-By viewing the readme, using this tool, or modifying the source code, you are acknowledging that you a) understand and agree to these terms and that b) The author provides no warranties or guarantees regarding the performance, accuracy, or reliability of the tool/source code/script. 
+By viewing the readme, using this tool, or modifying the source code, you are acknowledging that you a) understand and agree to these terms and that b) The author provides no warranties or guarantees regarding the performance, accuracy, or reliability of the tool/source code/script etc.
 
 ## License
 This script is licensed under MIT License. You can freely modify and distribute it, provided proper attribution is maintained.
