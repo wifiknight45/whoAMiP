@@ -1,66 +1,28 @@
-# whoAMiP is continually being updated as the Developer's time + workload allow. 
+# Please note that whoAMiP is continually being updated, check back here for the most recent update notes.  
 
-Potential Future Enhancements may include all or portions of the following: 
-Remote scanning of multiple targets (pass a list or CSV of IPs).
+updates--------> listed in order from most recent to least
 
-Asynchronous port scanning using asyncio for faster performance.
-
-IPv6 port scanning support (adjust Scapy packet for IPv6).
-
-Integration with Nmap or masscan for advanced fingerprinting.
-
-HTML or dashboard report generation (e.g., using Plotly Dash).
-
-Secure config file (.ini or .yaml) for SMTP, thresholds, port ranges.
-
-Alerting integration (Slack, PagerDuty, Webhooks).
-
-Containerization (Docker) for reproducible environment.
-
-Scheduling via cron or Windows Task Scheduler with automatic rotating logs.
-
-Script synopsis: 
-This Python script securely retrieves and analyzes network information, including public and private IP addresses, subnet masks, TOR network usage, open ports, and offers an option to save results for export, tailored for Debian distros of Linux with privacy-focused enhancements.
-
-V3 update notes: 
+V3 update notes 
 Improved Error Handling
 a) Specific exception catches (e.g., subprocess.CalledProcessError, requests.RequestException).
-
 b) Centralized logging (levels: DEBUG, INFO, WARNING, ERROR).
-
 c) Timeouts on all network calls to avoid hangs.
-
 d) Validation of key file existence before loading.
-
 e) Command-line validation (via argparse) for required parameters.
 
-V2 update notes:
-
+V2 update notes
 a) Network Interface Selection: Users can specify the network interface (default: eth0).
-
 b) Multi-threaded Port Scanning: Improved speed with threading.
-
 c) Advanced TOR Detection: Checks TOR usage more robustly.
-
 d) Result Encryption: Encrypts output data using the cryptography library.
-
 e) Dynamic Export Formats: Supports TXT, CSV, and JSON exports.
-
 f) Email Notifications: Sends results via email for monitoring purposes.
-
 g) Network Visualization: Visualizes open ports using matplotlib.
-
 h) Custom Port Range: Allows flexible port scanning range.
-
 i) Improved Error Handling: Exception handling for reliable script execution.
 
-j) Secure Metadata: Limits metadata exposure during API requests.
-
-note:
-This script enhances network security by providing critical insights into a network's status (i.e. its potential entry points that could be exposed and or exploited by vulnerabilities etc). By identifying public and private IP addresses, subnet masks, and open ports, you can gain a comprehensive understanding of your network's configuration, which helps detect unauthorized access points or misconfigurations. The TOR usage check ensures you're aware of any potential anonymity network connections that could be exploited for malicious purposes. Additionally, with the privacy-focused enhancements like secure requests, minimal metadata sharing, and optional encrypted exports, the script reduces the risk of data exposure during scanning and data handling processes. Such tools are valuable for proactively assessing and tightening your network's defenses.
-
 # whoAMiP
-(Network Information & Security Assessment) Script
+Python network information & security assessment Script
 
 ## Overview
 This Python script is designed to gather essential network information, assess security vulnerabilities, and perform network diagnostics on Debian-based Linux distros. The script retrieves public and private IP addresses, subnet masks, open ports, and checks for TOR network usage. It includes security enhancements to ensure scanning privacy and allows users to export results in CSV or TXT format for analysis and documentation.
@@ -77,14 +39,19 @@ This Python script is designed to gather essential network information, assess s
    - Optional encryption for saved results
 
 ## Requirements
-- Parrot OS (Debian-based Linux)
-- Python 3.x
-- Administrator privileges (required for some tasks)
+- Linux (tested on Debian-based distros)
+- Python 3.13.5 (currently the latest python stable release)
+- Admin privileges (required for some tasks)
 - Libraries: `requests`, `socket`, `subprocess`, `scapy`, `csv`
 
 You can install missing libraries using pip:
-```bash
-sudo pip3 install requests scapy
+bash
+"sudo pip3 install requests scapy"
+
+OR in Jupyter Notebook environment 
+"!pip3 install requests scapy"
+
+
 ```
 
 ## How to Use
@@ -98,16 +65,16 @@ sudo pip3 install requests scapy
    ```bash
    sudo python3 whoAMiP.py
    ```
-   Note: Administrator privileges are required for port scanning (root or sudo). 
+   Note: Administrator privileges are required for port scanning (e.g. root or sudo). 
 
-3. Follow the on-screen output for gathered network information and security assessment results.
+3. Follow the on-screen output for gathered network info + SecAssess results.
 
 4. Export the results (optional):
-   - To save as CSV:
+   a) To save as CSV:
      ```bash
      python3 whoAMiP.py --output csv
      ```
-   - To save as TXT:
+   b) To save as TXT:
      ```bash
      python3 whoAMiP.py --output txt
      ```
@@ -157,10 +124,12 @@ Open Ports: 22, 80, 443
 8. **Local-only Scanning**: Scans restricted to the local network to prevent external exposure.
 
 ## Author
-GitHub Profile (@wifiknight45) -----> https://github.com/wifiknight45/
+GitHub @wifiknight45
+https://github.com/wifiknight45/
+wifiknight45@proton.me
 
 Acknowledgements:
-Dieu ~ Microsoft Copilot ~ Google Colab ~ Visual Studio Code 
+Dieu
 
 Disclaimer
 This tool is provided for educational and research purposes only. The author assumes no responsibility or liability for any misuse, unintended consequences, or damages resulting from the use of this script. Users are solely responsible for ensuring that the script is utilized in compliance with all applicable laws, regulations, and organizational policies.
